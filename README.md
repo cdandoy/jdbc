@@ -56,6 +56,7 @@ preparedStatement.setString(6, 'three');
 preparedStatement.execute()
 ```
 
+---
 
 ### I want to execute a couple of inserts/updates together, many times
 Network round-trips may be costly so grouping a couple of inserts/updates in one execution is a good idea.
@@ -99,6 +100,7 @@ connection.prepareStatement("\n" +
     "END;")
 ```
 
+---
 ### I want to execute a couple of inserts/updates/selects.
 * Derby, HSQL or SqlLite: 
 Out of luck as for the previous one
