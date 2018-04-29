@@ -16,9 +16,11 @@ connection.setAutoCommit(false);
 connection.commit();
 ``` 
 
+---
+<a name="batch"></a>
 ### I want to insert many rows into one table.
 Use ```addBatch()``` and ```executeBatch()```, it is fast and implemented by every database.
-It is not only fast because of the reduced round-trips but also the JDBC driver and the database know that they have to repeat the same 
+It is not only fast because of the reduced round-trips but also because the JDBC driver and the database know that they have to repeat the same 
 work many times which allows optimizations. 
 ```
 PreparedStatement preparedStatement = connection.prepareStatement("insert into multi_test (id, txt) values (?, ?)")
@@ -31,10 +33,18 @@ for each row {
 preparedStatement.executeBatch()
 ```
 
-Another approach that would work if you have a limited number of rows to insert would be to use the SQL92 multi-value insert syntax but:
+<a name="multirow"></a>
+Another approach that would work if you have a limited number of rows to insert would be to use 
+the [SQL92 multi-row insert syntax](https://en.wikipedia.org/wiki/Insert_(SQL)#Multirow_inserts).
+This might be your best option if you have a mix of statements, for example if you want to insert an invoice header and the invoice lines.
+
+Please keep in mind:
 1. There is no performance advantage over the batch method.
 1. The number of parameters may be limited (2100 for SQL Server for example).
 1. The syntax is not supported by all databases (Oracle).
+
+
+
 ```
 PreparedStatement preparedStatement = connection.prepareStatement("insert into multi_test (id, txt) values (?, ?),(?, ?),(?, ?)...")
 preparedStatement.setInt(1, 1);
