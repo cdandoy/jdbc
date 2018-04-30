@@ -1,7 +1,7 @@
 package org.dandoy.jdbc.multi;
 
+import org.dandoy.jdbc.BaseTest;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.*;
@@ -10,52 +10,25 @@ import static java.sql.Statement.SUCCESS_NO_INFO;
 import static org.junit.Assert.*;
 
 @SuppressWarnings("Duplicates")
-public abstract class Multi {
-    Connection _connection;
+public abstract class Multi extends BaseTest {
     static final String[] WORDS = new String[]{"one", "two", "three"};
 
-    @Before
-    public void setUp() throws SQLException {
-        _connection = getConnection();
+    @After
+    public void tearDown() throws SQLException {
+        super.tearDown();
+    }
+
+    @Override
+    protected void beforeTest(Connection connection) throws SQLException {
+        dropTableIfExists(connection, "multi_test");
         try (Statement statement = _connection.createStatement()) {
-            try {
-                statement.execute("drop table multi_test");
-            } catch (SQLException e) {
-                final String sqlState = e.getSQLState();
-                if (sqlState != null)  // SQL Lite
-                    switch (sqlState) {
-                        case "S0005": // SQL Server
-                        case "42P01": // Postgres
-                        case "42Y55": // Derby
-                        case "42S02": // MySQL
-                        case "42000": // Oracle
-                        case "42501": // Hsql
-                            break;
-                        default:
-                            System.out.println(sqlState);
-                            throw e;
-                    }
-            }
             statement.execute("create table multi_test(id integer, txt varchar(255))");
         }
     }
 
-    @After
-    public void tearDown() throws SQLException {
-        try (Statement statement = _connection.createStatement()) {
-            statement.execute("drop table multi_test");
-        }
-        _connection.close();
-    }
-
-    protected abstract Connection getConnection() throws SQLException;
-
-    void notSupported() {
-        fail("Not supported");
-    }
-
-    static int getVersion(Connection connection) throws SQLException {
-        return connection.getMetaData().getDatabaseMajorVersion();
+    @Override
+    protected void afterTest(Connection connection) throws SQLException {
+        dropTableIfExists(connection, "multi_test");
     }
 
     /**
