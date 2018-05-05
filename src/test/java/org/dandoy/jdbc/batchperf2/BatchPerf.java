@@ -1,10 +1,7 @@
 package org.dandoy.jdbc.batchperf2;
 
-import org.dandoy.jdbc.Config;
+import org.dandoy.jdbc.batchperf2.dbs.Database;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -14,9 +11,6 @@ public class BatchPerf implements AutoCloseable {
     private final Genome _genome = new Genome();
     private final ResultWriter _resultWriter;
 
-    private String _lastDb = "";
-    private Connection _connection;
-    private String _databaseProductName;
     private int _nbrTests;
 
     private BatchPerf(ResultWriter resultWriter) {
@@ -39,24 +33,6 @@ public class BatchPerf implements AutoCloseable {
         return _genome.toString();
     }
 
-    private Connection getConnection(String db) {
-        if (!_lastDb.equals(db)) {
-            try {
-                if (_connection != null) {
-                    _connection.close();
-                }
-
-                _lastDb = db;
-                _connection = Config.getConnection(_genome.getDb());
-                final DatabaseMetaData metaData = _connection.getMetaData();
-                _databaseProductName = metaData.getDatabaseProductName();
-            } catch (SQLException e) {
-                throw new IllegalStateException("Operation failed", e);
-            }
-        }
-        return _connection;
-    }
-
     private void apply(Gene<?>... genes) {
         apply(Arrays.asList(genes));
     }
@@ -77,47 +53,11 @@ public class BatchPerf implements AutoCloseable {
         }
     }
 
-    private boolean isApplicable() {
-        if (_genome.getMultiValue() > _genome.getNbrRows()) {
-            System.err.println("_multiValue > _nbrIterations: " + this);
-            return false;
-        }
-        if (_genome.getNbrRows() % _genome.getMultiValue() != 0) {
-            System.err.println("_nbrIterations % _multiValue != 0: " + this);
-            return false;
-        }
-        switch (_databaseProductName) {
-            case "Apache Derby":
-                if (_genome.getNbrRows() > 1000) return false;
-                break;
-            case "HSQL Database Engine":
-                if (_genome.getNbrRows() > 1000) return false;
-                break;
-            case "SQLite":
-                if (_genome.getNbrRows() > 1000) return false;
-                if (_genome.isAutoCommit()) return false;
-                break;
-            case "MySQL":
-                break;
-            case "Oracle":
-                if (_genome.getMultiValue() > 1) return false;
-                break;
-            case "PostgreSQL":
-                break;
-            case "Microsoft SQL Server":
-                break;
-            default:
-                throw new IllegalStateException("Unknown DB: " + _databaseProductName);
-        }
-        return true;
-    }
-
     private void runTest() {
-        final Connection connection = getConnection(_genome.getDb());
-        if (isApplicable()) {
+        if (_genome.isApplicable()) {
             try {
                 System.out.println(_genome);
-                final long t = _tester.runTest(connection, _genome);
+                final long t = _tester.runTest(_genome);
                 final Result result = new Result(_genome, t);
                 _resultWriter.writeResult(result);
                 _nbrTests++;
@@ -130,16 +70,15 @@ public class BatchPerf implements AutoCloseable {
 
     private void vary() {
         apply(
-                new Gene<>(Genome::setDb
-                        , "derby"
-//                        , "hsql"
-//                        , "sqllite"
-//                        , "mysql"
-//                        , "oracle11"
-//                        , "postgres"
-//                        , "sqlserver"
+                new Gene<>(Genome::setDatabase
+                        , Database.createDatabase("derby")
+                        , Database.createDatabase("hsql")
+                        , Database.createDatabase("sqllite")
+                        , Database.createDatabase("mysql")
+                        , Database.createDatabase("oracle11")
+                        , Database.createDatabase("postgres")
+                        , Database.createDatabase("sqlserver")
                 ),
-//                new Gene<>(Genome::setNbrRows, 10),
                 new Gene<>(Genome::setNbrRows
                         , 1000
                         , 10_000
@@ -147,22 +86,20 @@ public class BatchPerf implements AutoCloseable {
                 ),
                 new Gene<>(Genome::setAutoCommit, false, true),
                 new Gene<>(Genome::setBatchInsert, false, true),
-//                new Gene<>(Genome::setMultiValue, 1)
                 new Gene<>(Genome::setMultiValue, 1, 500)
         );
     }
 
-    @SuppressWarnings("unused")
     private void vary2() {
         apply(
-                new Gene<>(Genome::setDb
-                        , "derby"
-//                        , "hsql"
-//                        , "sqllite"
-//                        , "mysql"
-//                        , "oracle11"
-//                        , "postgres"
-//                        , "sqlserver"
+                new Gene<>(Genome::setDatabase
+//                        , Database.createDatabase("derby")
+//                        , Database.createDatabase("hsql")
+//                        , Database.createDatabase("sqllite")
+//                        , Database.createDatabase("mysql")
+                        , Database.createDatabase("oracle11")
+//                        , Database.createDatabase("postgres")
+//                        , Database.createDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
                         , 1000
@@ -186,7 +123,12 @@ public class BatchPerf implements AutoCloseable {
 
     public static void main(String[] args) {
         try (BatchPerf batchPerf = createBatchPerf()) {
-            batchPerf.vary();
+            //noinspection ConstantConditions
+            if (false) {
+                batchPerf.vary();
+            } else {
+                batchPerf.vary2();
+            }
             System.out.println("Tests: " + batchPerf._nbrTests);
         }
     }

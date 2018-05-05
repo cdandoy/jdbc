@@ -1,6 +1,7 @@
 package org.dandoy.jdbc.batchperf2;
 
 import org.dandoy.jdbc.Config;
+import org.dandoy.jdbc.batchperf2.dbs.Database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -52,7 +53,8 @@ public class ResultWriter implements AutoCloseable {
     void writeResult(Result result) {
         try {
             final Genome genome = result.getGenome();
-            _preparedStatement.setString(1, genome.getDb());
+            final Database database = genome.getDatabase();
+            _preparedStatement.setString(1, database.getDb());
             _preparedStatement.setInt(2, genome.getNbrRows());
             _preparedStatement.setBoolean(3, genome.isAutoCommit());
             _preparedStatement.setBoolean(4, genome.isBatchInsert());

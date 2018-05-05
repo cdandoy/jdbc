@@ -19,8 +19,12 @@ public class Config {
         _password = password;
     }
 
+    public String getUrl() {
+        return _url;
+    }
+
     public static Connection getConnection(String base) throws SQLException {
-        final Config config = getProperties(base);
+        final Config config = getConfig(base);
         try {
             return DriverManager.getConnection(config._url, config._username, config._password);
         } catch (SQLException e) {
@@ -28,7 +32,7 @@ public class Config {
         }
     }
 
-    private static Config getProperties(String base) {
+    public static Config getConfig(String base) {
         final String url = PROPERTIES.getProperty(base + ".url");
         if (url == null || url.trim().isEmpty()) {
             throw new IllegalStateException("Invalid url for " + base);
@@ -40,7 +44,7 @@ public class Config {
         );
     }
 
-    private static Properties getProperties() {
+    public static Properties getProperties() {
         final Properties properties = new Properties();
         final File file = getFile();
         if (file != null) {

@@ -3,6 +3,7 @@ package org.dandoy.jdbc.batchperf2;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dandoy.jdbc.BaseTest;
+import org.dandoy.jdbc.batchperf2.dbs.Database;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,11 +12,14 @@ import java.sql.Statement;
 
 @SuppressWarnings("Duplicates")
 class BatchPerfTester {
-    long runTest(Connection connection, Genome genome) throws SQLException {
+    long runTest(Genome genome) throws SQLException {
+        final Database database = genome.getDatabase();
         final int nbrIterations = genome.getNbrRows();
         final boolean autoCommit = genome.isAutoCommit();
         final boolean batchInsert = genome.isBatchInsert();
         final int multiValue = genome.getMultiValue();
+
+        final Connection connection = database.getConnection();
 
         try {
             createTable(connection, autoCommit);

@@ -1,7 +1,9 @@
 package org.dandoy.jdbc.batchperf2;
 
-class Genome {
-    private String _db;
+import org.dandoy.jdbc.batchperf2.dbs.Database;
+
+public class Genome {
+    private Database _database;
     private int _nbrRows;
     private boolean _autoCommit;
     private boolean _batchInsert;
@@ -12,22 +14,22 @@ class Genome {
 
     @Override
     public String toString() {
-        return "_db='" + _db + '\'' +
+        return "_db='" + _database.getDb() + '\'' +
                 ", _nbrRows=" + _nbrRows +
                 ", _autoCommit=" + _autoCommit +
                 ", _batchInsert=" + _batchInsert +
                 ", _multiValue=" + _multiValue;
     }
 
-    String getDb() {
-        return _db;
+    Database getDatabase() {
+        return _database;
     }
 
-    void setDb(String db) {
-        _db = db;
+    void setDatabase(Database database) {
+        _database = database;
     }
 
-    int getNbrRows() {
+    public int getNbrRows() {
         return _nbrRows;
     }
 
@@ -35,7 +37,7 @@ class Genome {
         _nbrRows = nbrRows;
     }
 
-    boolean isAutoCommit() {
+    public boolean isAutoCommit() {
         return _autoCommit;
     }
 
@@ -51,11 +53,15 @@ class Genome {
         _batchInsert = batchInsert;
     }
 
-    int getMultiValue() {
+    public int getMultiValue() {
         return _multiValue;
     }
 
     void setMultiValue(int multiValue) {
         _multiValue = multiValue;
+    }
+
+    boolean isApplicable() {
+        return _database.isApplicable(this);
     }
 }

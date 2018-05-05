@@ -2,6 +2,9 @@ package org.dandoy.jdbc.batchperf2;
 
 import java.util.function.BiConsumer;
 
+/**
+ * @param <T> the type of values
+ */
 class Gene<T> {
     private final BiConsumer<Genome, T> _consumer;
     private final T[] _values;
