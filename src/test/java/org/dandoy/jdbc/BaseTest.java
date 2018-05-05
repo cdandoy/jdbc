@@ -18,7 +18,7 @@ public abstract class BaseTest {
         beforeTest(_connection);
     }
 
-    protected void dropTableIfExists(Connection connection, String tableName) throws SQLException {
+    public static void dropTableIfExists(Connection connection, String tableName) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             try {
                 statement.execute("drop table " + tableName);
