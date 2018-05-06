@@ -25,6 +25,10 @@ public abstract class Database {
         return _db;
     }
 
+    public List<DatabaseGene<? extends DatabaseGenome, ?>> getGenes() {
+        return _genes;
+    }
+
     public void forEachDatabaseGene(Consumer<DatabaseGenome> consumer) {
         final DatabaseGenome databaseGenome = createDatabaseGenome();
         forEachDatabaseGene(_genes, databaseGenome, consumer);
@@ -38,14 +42,13 @@ public abstract class Database {
             final List<DatabaseGene<? extends DatabaseGenome, ?>> subList = genes.subList(1, genes.size());
             final Object[] values = gene.getValues();
             for (Object value : values) {
-                final BiConsumer geneConsumer = gene.getConsumer();
+                final BiConsumer geneConsumer = gene.getSetter();
                 //noinspection unchecked
                 geneConsumer.accept(genome, value);
                 forEachDatabaseGene(subList, genome, consumer);
             }
         }
     }
-
 
     public Connection getConnection() {
         if (_connection == null) {

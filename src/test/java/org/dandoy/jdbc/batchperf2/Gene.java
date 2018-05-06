@@ -1,5 +1,9 @@
 package org.dandoy.jdbc.batchperf2;
 
+import org.dandoy.jdbc.batchperf2.dbs.Database;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
@@ -21,5 +25,15 @@ class Gene<T> {
 
     T[] getValues() {
         return _values;
+    }
+
+    static List<Database> getDatabases(List<Gene<?>> genes) {
+        for (Gene<?> gene : genes) {
+            final Object firstValue = gene.getValues()[0];
+            if (firstValue instanceof Database) {
+                return Arrays.asList((Database[]) gene._values);
+            }
+        }
+        throw new IllegalStateException("Database gene not found");
     }
 }

@@ -2,6 +2,8 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
+import static java.sql.JDBCType.BOOLEAN;
+
 public class OracleDatabase extends Database {
     @SafeVarargs
     public OracleDatabase(String db, DatabaseGene<OracleDatabaseGenome, ?>... genes) {
@@ -34,6 +36,16 @@ public class OracleDatabase extends Database {
         );
     }
 
+    public static DatabaseGene<OracleDatabaseGenome, Boolean> pctFree() {
+        return new DatabaseGene<>("oracle_pctfree",
+                BOOLEAN,
+                OracleDatabaseGenome::setPctFree,
+                OracleDatabaseGenome::isPctFree,
+                true,
+                false
+        );
+    }
+
     public static class OracleDatabaseGenome extends DatabaseGenome<OracleDatabase> {
         private boolean _pctFree;
 
@@ -41,7 +53,7 @@ public class OracleDatabase extends Database {
             return _pctFree;
         }
 
-        public void setPctFree(boolean pctFree) {
+        void setPctFree(boolean pctFree) {
             _pctFree = pctFree;
         }
     }

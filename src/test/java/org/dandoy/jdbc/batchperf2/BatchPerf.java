@@ -16,8 +16,9 @@ public class BatchPerf implements AutoCloseable {
         _resultWriter = resultWriter;
     }
 
-    private static BatchPerf createBatchPerf() {
-        final ResultWriter resultWriter = ResultWriter.createResultWriter();
+    private static BatchPerf createBatchPerf(List<Gene<?>> genes) {
+        final List<Database> databases = Gene.getDatabases(genes);
+        final ResultWriter resultWriter = ResultWriter.createResultWriter(databases);
 
         return new BatchPerf(resultWriter);
     }
@@ -71,9 +72,7 @@ public class BatchPerf implements AutoCloseable {
                         , new HsqlDatabase("hsql")
                         , new SqliteDatabase("sqllite")
                         , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11"
-                        , new DatabaseGene<>(OracleDatabase.OracleDatabaseGenome::setPctFree)
-                )
+                        , new OracleDatabase("oracle11", OracleDatabase.pctFree())
                         , new PostgresDatabase("postgres")
                         , new SqlserverDatabase("sqlserver")
                 ),
@@ -91,15 +90,13 @@ public class BatchPerf implements AutoCloseable {
     private static List<Gene<?>> createGenes2() {
         return Arrays.asList(
                 new Gene<>(Genome::setDatabase
-//                        , new DerbyDatabase("derby")
-//                        , new HsqlDatabase("hsql")
-//                        , new SqliteDatabase("sqllite")
-//                        , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11"
-                        , new DatabaseGene<>(OracleDatabase.OracleDatabaseGenome::setPctFree, false, true)
-                )
-//                        , new PostgresDatabase("postgres")
-//                        , new SqlserverDatabase("sqlserver")
+                        , new DerbyDatabase("derby")
+                        , new HsqlDatabase("hsql")
+                        , new SqliteDatabase("sqllite")
+                        , new MysqlDatabase("mysql")
+                        , new OracleDatabase("oracle11", OracleDatabase.pctFree())
+                        , new PostgresDatabase("postgres")
+                        , new SqlserverDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
                         , 1000
@@ -124,7 +121,7 @@ public class BatchPerf implements AutoCloseable {
     public static void main(String[] args) {
         //noinspection ConstantConditionalExpression
         final List<Gene<?>> genes = false ? createGenes() : createGenes2();
-        try (BatchPerf batchPerf = createBatchPerf()) {
+        try (BatchPerf batchPerf = createBatchPerf(genes)) {
             batchPerf.apply(genes);
             System.out.println("Tests: " + batchPerf._nbrTests);
         }
