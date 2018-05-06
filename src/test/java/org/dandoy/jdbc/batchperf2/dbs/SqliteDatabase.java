@@ -3,8 +3,7 @@ package org.dandoy.jdbc.batchperf2.dbs;
 import org.dandoy.jdbc.batchperf2.Genome;
 
 public class SqliteDatabase extends Database {
-    @SafeVarargs
-    public SqliteDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+    public SqliteDatabase(String db, DatabaseGene... genes) {
         super(db, genes);
     }
 

@@ -1,8 +1,7 @@
 package org.dandoy.jdbc.batchperf2.dbs;
 
 public class PostgresDatabase extends Database {
-    @SafeVarargs
-    public PostgresDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+    public PostgresDatabase(String db, DatabaseGene... genes) {
         super(db, genes);
     }
 }

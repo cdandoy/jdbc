@@ -54,7 +54,7 @@ public class BatchPerf implements AutoCloseable {
 
     private void runTest(Genome genome, DatabaseGenome databaseGenome) {
         try {
-            System.out.println(genome + "|" + databaseGenome);
+            System.out.println(genome + ", " + databaseGenome);
             final long t = _tester.runTest(genome, databaseGenome);
             final Result result = new Result(genome, databaseGenome, t);
             _resultWriter.writeResult(result);
@@ -90,30 +90,30 @@ public class BatchPerf implements AutoCloseable {
     private static List<Gene<?>> createGenes2() {
         return Arrays.asList(
                 new Gene<>(Genome::setDatabase
-                        , new DerbyDatabase("derby")
-                        , new HsqlDatabase("hsql")
-                        , new SqliteDatabase("sqllite")
-                        , new MysqlDatabase("mysql")
+//                        , new DerbyDatabase("derby")
+//                        , new HsqlDatabase("hsql")
+//                        , new SqliteDatabase("sqllite")
+//                        , new MysqlDatabase("mysql")
                         , new OracleDatabase("oracle11", OracleDatabase.pctFree())
                         , new PostgresDatabase("postgres")
                         , new SqlserverDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
                         , 1000
-//                        , 10_000
-//                        , 100_000
+                        , 10_000
+                        , 100_000
                 ),
                 new Gene<>(Genome::setAutoCommit
                         , false
-//                        , true
+                        , true
                 ),
                 new Gene<>(Genome::setBatchInsert
                         , false
-//                        , true
+                        , true
                 ),
                 new Gene<>(Genome::setMultiValue
                         , 1
-//                        , 500
+                        , 500
                 )
         );
     }

@@ -8,7 +8,6 @@ import org.dandoy.jdbc.batchperf2.dbs.DatabaseGenome;
 
 import java.sql.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ResultWriter implements AutoCloseable {
@@ -52,8 +51,8 @@ public class ResultWriter implements AutoCloseable {
     private static String createDbDecls(List<Database> databases) {
         final StringBuilder dbGeneDecls = new StringBuilder();
         for (Database database : databases) {
-            final List<DatabaseGene<? extends DatabaseGenome, ?>> genes = database.getGenes();
-            for (DatabaseGene<? extends DatabaseGenome, ?> gene : genes) {
+            final List<DatabaseGene> genes = database.getGenes();
+            for (DatabaseGene gene : genes) {
                 final String colDecl = String.format(", %s %s\n", gene.getName(), toDbType(gene.getJdbcType()));
                 dbGeneDecls.append(colDecl);
             }
@@ -74,7 +73,7 @@ public class ResultWriter implements AutoCloseable {
         }
     }
 
-    private static String createInsertStatement(List<DatabaseGene<? extends DatabaseGenome, ?>> databaseGenes) {
+    private static String createInsertStatement(List<DatabaseGene> databaseGenes) {
         final String columnNames = databaseGenes
                 .stream()
                 .map(databaseGene -> "," + databaseGene.getName())
@@ -101,7 +100,7 @@ public class ResultWriter implements AutoCloseable {
     void writeResult(Result result) {
         final Genome genome = result.getGenome();
         final Database database = genome.getDatabase();
-        final List<DatabaseGene<? extends DatabaseGenome, ?>> databaseGenes = database.getGenes();
+        final List<DatabaseGene> databaseGenes = database.getGenes();
         final String sql = createInsertStatement(databaseGenes);
         try (PreparedStatement preparedStatement = _connection.prepareStatement(sql)) {
             int pos = 1;
@@ -112,11 +111,13 @@ public class ResultWriter implements AutoCloseable {
             preparedStatement.setInt(pos++, genome.getMultiValue());
             preparedStatement.setLong(pos++, result.getTime());
             preparedStatement.setDouble(pos++, ((double) result.getTime()) / genome.getNbrRows());
-            for (DatabaseGene<? extends DatabaseGenome, ?> databaseGene : databaseGenes) {
-                final Function<DatabaseGenome, ?> getter = (Function<DatabaseGenome, ?>) databaseGene.getGetter();
+
+            final DatabaseGenome databaseGenome = result.getDatabaseGenome();
+            for (DatabaseGene databaseGene : databaseGenes) {
+                final String name = databaseGene.getName();
+                final Object value = databaseGenome.getValue(name);
                 final JDBCType jdbcType = databaseGene.getJdbcType();
-                final Object o = getter.apply(result.getDatabaseGenome());
-                preparedStatement.setObject(pos++, o, jdbcType.getVendorTypeNumber());
+                preparedStatement.setObject(pos++, value, jdbcType.getVendorTypeNumber());
             }
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

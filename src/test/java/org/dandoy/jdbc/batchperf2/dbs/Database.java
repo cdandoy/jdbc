@@ -6,16 +6,14 @@ import org.dandoy.jdbc.batchperf2.Genome;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public abstract class Database {
     private final String _db;
-    private final List<DatabaseGene<? extends DatabaseGenome, ?>> _genes;
+    private final List<DatabaseGene> _genes;
     private Connection _connection;
 
-    @SafeVarargs
-    Database(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+    Database(String db, DatabaseGene... genes) {
         _db = db;
         _genes = Arrays.asList(genes);
     }
@@ -25,7 +23,7 @@ public abstract class Database {
         return _db;
     }
 
-    public List<DatabaseGene<? extends DatabaseGenome, ?>> getGenes() {
+    public List<DatabaseGene> getGenes() {
         return _genes;
     }
 
@@ -34,17 +32,16 @@ public abstract class Database {
         forEachDatabaseGene(_genes, databaseGenome, consumer);
     }
 
-    private void forEachDatabaseGene(List<DatabaseGene<? extends DatabaseGenome, ?>> genes, DatabaseGenome genome, Consumer<DatabaseGenome> consumer) {
+    private void forEachDatabaseGene(List<DatabaseGene> genes, DatabaseGenome genome, Consumer<DatabaseGenome> consumer) {
         if (genes.isEmpty()) {
             consumer.accept(genome);
         } else {
-            final DatabaseGene<? extends DatabaseGenome, ?> gene = genes.get(0);
-            final List<DatabaseGene<? extends DatabaseGenome, ?>> subList = genes.subList(1, genes.size());
+            final DatabaseGene gene = genes.get(0);
+            final List<DatabaseGene> subList = genes.subList(1, genes.size());
             final Object[] values = gene.getValues();
+            final String name = gene.getName();
             for (Object value : values) {
-                final BiConsumer geneConsumer = gene.getSetter();
-                //noinspection unchecked
-                geneConsumer.accept(genome, value);
+                genome.setValue(name, value);
                 forEachDatabaseGene(subList, genome, consumer);
             }
         }

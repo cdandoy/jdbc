@@ -3,8 +3,7 @@ package org.dandoy.jdbc.batchperf2.dbs;
 import org.dandoy.jdbc.batchperf2.Genome;
 
 public class DerbyDatabase extends Database {
-    @SafeVarargs
-    public DerbyDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+    public DerbyDatabase(String db, DatabaseGene... genes) {
         super(db, genes);
     }
 

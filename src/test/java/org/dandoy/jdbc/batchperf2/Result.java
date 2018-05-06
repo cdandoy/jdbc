@@ -22,7 +22,7 @@ class Result {
         return _genome;
     }
 
-    public DatabaseGenome getDatabaseGenome() {
+    DatabaseGenome getDatabaseGenome() {
         return _databaseGenome;
     }
 

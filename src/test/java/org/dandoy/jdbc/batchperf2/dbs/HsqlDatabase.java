@@ -3,8 +3,7 @@ package org.dandoy.jdbc.batchperf2.dbs;
 import org.dandoy.jdbc.batchperf2.Genome;
 
 public class HsqlDatabase extends Database {
-    @SafeVarargs
-    public HsqlDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+    public HsqlDatabase(String db, DatabaseGene... genes) {
         super(db, genes);
     }
 
