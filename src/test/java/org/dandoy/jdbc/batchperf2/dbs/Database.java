@@ -6,14 +6,13 @@ import org.dandoy.jdbc.batchperf2.Genome;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
-public abstract class Database {
+public class Database {
     private final String _db;
     private final List<DatabaseGene> _genes;
     private Connection _connection;
 
-    Database(String db, DatabaseGene... genes) {
+    public Database(String db, DatabaseGene... genes) {
         _db = db;
         _genes = Arrays.asList(genes);
     }
@@ -27,14 +26,13 @@ public abstract class Database {
         return _genes;
     }
 
-    public void forEachDatabaseGene(Consumer<DatabaseGenome> consumer) {
-        final DatabaseGenome databaseGenome = createDatabaseGenome();
-        forEachDatabaseGene(_genes, databaseGenome, consumer);
+    public void forEachDatabaseGene(DatabaseGenome databaseGenome, Runnable runnable) {
+        forEachDatabaseGene(_genes, databaseGenome, runnable);
     }
 
-    private void forEachDatabaseGene(List<DatabaseGene> genes, DatabaseGenome genome, Consumer<DatabaseGenome> consumer) {
+    private void forEachDatabaseGene(List<DatabaseGene> genes, DatabaseGenome genome, Runnable runnable) {
         if (genes.isEmpty()) {
-            consumer.accept(genome);
+            runnable.run();
         } else {
             final DatabaseGene gene = genes.get(0);
             final List<DatabaseGene> subList = genes.subList(1, genes.size());
@@ -42,7 +40,7 @@ public abstract class Database {
             final String name = gene.getName();
             for (Object value : values) {
                 genome.setValue(name, value);
-                forEachDatabaseGene(subList, genome, consumer);
+                forEachDatabaseGene(subList, genome, runnable);
             }
         }
     }
@@ -56,10 +54,6 @@ public abstract class Database {
 
     public String getDb() {
         return _db;
-    }
-
-    public DatabaseGenome createDatabaseGenome() {
-        return new DatabaseGenome();
     }
 
     public boolean isApplicable(Genome genome) {

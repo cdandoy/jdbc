@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 public class DatabaseGenome {
     private final Map<String, Object> _genes = new HashMap<>();
 
-    DatabaseGenome() {
+    public DatabaseGenome() {
     }
 
     @Override

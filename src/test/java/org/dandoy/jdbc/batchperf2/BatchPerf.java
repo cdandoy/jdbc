@@ -37,7 +37,8 @@ public class BatchPerf implements AutoCloseable {
         if (genes.isEmpty()) {
             if (genome.isApplicable()) {
                 final Database database = genome.getDatabase();
-                database.forEachDatabaseGene(databaseGenome -> runTest(genome, databaseGenome));
+                final DatabaseGenome databaseGenome = new DatabaseGenome();
+                database.forEachDatabaseGene(databaseGenome, () -> runTest(genome, databaseGenome));
             }
         } else {
             final Gene<?> gene = genes.get(0);

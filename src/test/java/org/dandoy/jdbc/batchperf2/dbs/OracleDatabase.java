@@ -10,11 +10,6 @@ public class OracleDatabase extends Database {
     }
 
     @Override
-    public DatabaseGenome createDatabaseGenome() {
-        return new DatabaseGenome();
-    }
-
-    @Override
     public boolean isApplicable(Genome genome) {
         if (genome.getMultiValue() > 1) return false;
         return super.isApplicable(genome);
