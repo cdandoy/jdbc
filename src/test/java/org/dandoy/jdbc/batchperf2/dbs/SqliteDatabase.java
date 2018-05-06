@@ -2,11 +2,10 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
-import java.sql.Connection;
-
-class SqliteDatabase extends Database {
-    SqliteDatabase(String db, Connection connection) {
-        super(db, connection);
+public class SqliteDatabase extends Database {
+    @SafeVarargs
+    public SqliteDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+        super(db, genes);
     }
 
     @Override

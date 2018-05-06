@@ -23,12 +23,12 @@ public class Config {
         return _url;
     }
 
-    public static Connection getConnection(String base) throws SQLException {
+    public static Connection getConnection(String base) {
         final Config config = getConfig(base);
         try {
             return DriverManager.getConnection(config._url, config._username, config._password);
         } catch (SQLException e) {
-            throw new SQLException("Failed to connect to " + base, e);
+            throw new IllegalStateException("Failed to connect to " + base, e);
         }
     }
 

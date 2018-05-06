@@ -2,11 +2,9 @@ package org.dandoy.jdbc.batchperf2;
 
 import org.dandoy.jdbc.Config;
 import org.dandoy.jdbc.batchperf2.dbs.Database;
+import org.dandoy.jdbc.batchperf2.dbs.DatabaseGenome;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class ResultWriter implements AutoCloseable {
     private final PreparedStatement _preparedStatement;
@@ -19,8 +17,7 @@ public class ResultWriter implements AutoCloseable {
         try {
             final Connection connection = Config.getConnection("results");
             try (Statement statement = connection.createStatement()) {
-                statement.execute("\n" +
-                        "drop table if exists batch_results;\n" +
+                statement.execute("drop table if exists batch_results;\n" +
                         "\n" +
                         "create table batch_results (\n" +
                         "  batch_result_id serial primary key,\n" +
@@ -33,7 +30,10 @@ public class ResultWriter implements AutoCloseable {
                         "  millis_per_row  float       not null\n" +
                         ");");
             }
-            final PreparedStatement preparedStatement = connection.prepareStatement("insert into batch_results (db, nbr_rows, auto_commit, batch, multi_value, millis, millis_per_row) values (?,?,?,?,?,?,?)");
+            final PreparedStatement preparedStatement = connection.prepareStatement(
+                    "insert into batch_results (db, nbr_rows, auto_commit, batch, multi_value, millis, millis_per_row) values (?,?,?,?,?,?,?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
             return new ResultWriter(preparedStatement);
         } catch (SQLException e) {
             throw new IllegalStateException("Operation failed", e);
@@ -62,6 +62,11 @@ public class ResultWriter implements AutoCloseable {
             _preparedStatement.setLong(6, result.getTime());
             _preparedStatement.setDouble(7, ((double) result.getTime()) / genome.getNbrRows());
             _preparedStatement.executeUpdate();
+            final ResultSet generatedKeys = _preparedStatement.getGeneratedKeys();
+            generatedKeys.next();
+            final long resultId = generatedKeys.getLong(1);
+            final DatabaseGenome databaseGenome = result.getDatabaseGenome();
+            databaseGenome.appendResults(resultId);
         } catch (SQLException e) {
             throw new IllegalStateException("Operation failed", e);
         }

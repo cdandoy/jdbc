@@ -4,44 +4,20 @@ import org.dandoy.jdbc.Config;
 import org.dandoy.jdbc.batchperf2.Genome;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-public class Database {
+public abstract class Database {
     private final String _db;
-    private final Connection _connection;
+    private final List<DatabaseGene<? extends DatabaseGenome, ?>> _genes;
+    private Connection _connection;
 
-    Database(String db, Connection connection) {
+    @SafeVarargs
+    Database(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
         _db = db;
-        _connection = connection;
-    }
-
-    public static Database createDatabase(String db) {
-        try {
-            final Connection connection = Config.getConnection(db);
-            final DatabaseMetaData databaseMetaData = connection.getMetaData();
-            final String databaseProductName = databaseMetaData.getDatabaseProductName();
-            switch (databaseProductName) {
-                case "Apache Derby":
-                    return new DerbyDatabase(db, connection);
-                case "HSQL Database Engine":
-                    return new HsqlDatabase(db, connection);
-                case "SQLite":
-                    return new SqliteDatabase(db, connection);
-                case "MySQL":
-                    return new MysqlDatabase(db, connection);
-                case "Oracle":
-                    return new OracleDatabase(db, connection);
-                case "PostgreSQL":
-                    return new PostgresDatabase(db, connection);
-                case "Microsoft SQL Server":
-                    return new SqlserverDatabase(db, connection);
-                default:
-                    throw new IllegalStateException("Unknown DB: " + databaseProductName);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Operation failed", e);
-        }
+        _genes = Arrays.asList(genes);
     }
 
     @Override
@@ -49,12 +25,41 @@ public class Database {
         return _db;
     }
 
+    public void forEachDatabaseGene(Consumer<DatabaseGenome> consumer) {
+        final DatabaseGenome databaseGenome = createDatabaseGenome();
+        forEachDatabaseGene(_genes, databaseGenome, consumer);
+    }
+
+    private void forEachDatabaseGene(List<DatabaseGene<? extends DatabaseGenome, ?>> genes, DatabaseGenome genome, Consumer<DatabaseGenome> consumer) {
+        if (genes.isEmpty()) {
+            consumer.accept(genome);
+        } else {
+            final DatabaseGene<? extends DatabaseGenome, ?> gene = genes.get(0);
+            final List<DatabaseGene<? extends DatabaseGenome, ?>> subList = genes.subList(1, genes.size());
+            final Object[] values = gene.getValues();
+            for (Object value : values) {
+                final BiConsumer geneConsumer = gene.getConsumer();
+                //noinspection unchecked
+                geneConsumer.accept(genome, value);
+                forEachDatabaseGene(subList, genome, consumer);
+            }
+        }
+    }
+
+
     public Connection getConnection() {
+        if (_connection == null) {
+            _connection = Config.getConnection(_db);
+        }
         return _connection;
     }
 
     public String getDb() {
         return _db;
+    }
+
+    public DatabaseGenome createDatabaseGenome() {
+        return new DatabaseGenome();
     }
 
     public boolean isApplicable(Genome genome) {
@@ -69,7 +74,7 @@ public class Database {
         return true;
     }
 
-    String getCreateTable() {
+    public String getCreateTable(DatabaseGenome databaseGenome) {
         //language=GenericSQL
         return "\n" +
                 "create table batch_test (\n" +

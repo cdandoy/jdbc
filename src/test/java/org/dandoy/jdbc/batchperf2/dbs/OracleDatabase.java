@@ -2,11 +2,15 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
-import java.sql.Connection;
+public class OracleDatabase extends Database {
+    @SafeVarargs
+    public OracleDatabase(String db, DatabaseGene<OracleDatabaseGenome, ?>... genes) {
+        super(db, genes);
+    }
 
-class OracleDatabase extends Database {
-    OracleDatabase(String db, Connection connection) {
-        super(db, connection);
+    @Override
+    public OracleDatabaseGenome createDatabaseGenome() {
+        return new OracleDatabaseGenome();
     }
 
     @Override
@@ -16,15 +20,29 @@ class OracleDatabase extends Database {
     }
 
     @Override
-    String getCreateTable() {
-        //language=GenericSQL
-        return "\n" +
-                "create table batch_test (\n" +
-                "  batch_test_id int primary key,\n" +
-                "  first_name    varchar(50) not null,\n" +
-                "  last_name     varchar(50) not null,\n" +
-                "  email         varchar(50) not null,\n" +
-                "  address       varchar(50) not null\n" +
-                ")";
+    public String getCreateTable(DatabaseGenome databaseGenome) {
+        final OracleDatabaseGenome genome = (OracleDatabaseGenome) databaseGenome;
+        return String.format("\n" +
+                        "create table batch_test (\n" +
+                        "  batch_test_id int primary key,\n" +
+                        "  first_name    varchar(50) not null,\n" +
+                        "  last_name     varchar(50) not null,\n" +
+                        "  email         varchar(50) not null,\n" +
+                        "  address       varchar(50) not null\n" +
+                        ")%s",
+                genome.isPctFree() ? "PCTFREE 0" : ""
+        );
+    }
+
+    public static class OracleDatabaseGenome extends DatabaseGenome<OracleDatabase> {
+        private boolean _pctFree;
+
+        boolean isPctFree() {
+            return _pctFree;
+        }
+
+        public void setPctFree(boolean pctFree) {
+            _pctFree = pctFree;
+        }
     }
 }

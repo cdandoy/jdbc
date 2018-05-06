@@ -2,11 +2,10 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
-import java.sql.Connection;
-
-class DerbyDatabase extends Database {
-    DerbyDatabase(String db, Connection connection) {
-        super(db, connection);
+public class DerbyDatabase extends Database {
+    @SafeVarargs
+    public DerbyDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+        super(db, genes);
     }
 
     @Override

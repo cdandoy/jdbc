@@ -1,9 +1,8 @@
 package org.dandoy.jdbc.batchperf2.dbs;
 
-import java.sql.Connection;
-
-class PostgresDatabase extends Database {
-    PostgresDatabase(String db, Connection connection) {
-        super(db, connection);
+public class PostgresDatabase extends Database {
+    @SafeVarargs
+    public PostgresDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+        super(db, genes);
     }
 }

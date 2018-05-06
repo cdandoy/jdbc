@@ -4,6 +4,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dandoy.jdbc.BaseTest;
 import org.dandoy.jdbc.batchperf2.dbs.Database;
+import org.dandoy.jdbc.batchperf2.dbs.DatabaseGenome;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +13,7 @@ import java.sql.Statement;
 
 @SuppressWarnings("Duplicates")
 class BatchPerfTester {
-    long runTest(Genome genome) throws SQLException {
+    long runTest(Genome genome, DatabaseGenome databaseGenome) throws SQLException {
         final Database database = genome.getDatabase();
         final int nbrIterations = genome.getNbrRows();
         final boolean autoCommit = genome.isAutoCommit();
@@ -22,7 +23,7 @@ class BatchPerfTester {
         final Connection connection = database.getConnection();
 
         try {
-            createTable(connection, autoCommit);
+            createTable(connection, database, databaseGenome, autoCommit);
 
             final long t0 = System.currentTimeMillis();
             try (PreparedStatement preparedStatement = preparedStatement(connection, multiValue)) {
@@ -59,17 +60,11 @@ class BatchPerfTester {
         return connection.prepareStatement("insert into batch_test (batch_test_id, first_name, last_name, email, address) values " + params);
     }
 
-    private void createTable(Connection connection, boolean autoCommit) throws SQLException {
+    private void createTable(Connection connection, Database database, DatabaseGenome databaseGenome, boolean autoCommit) throws SQLException {
         BaseTest.dropTableIfExists(connection, "batch_test");
         try (Statement statement = connection.createStatement()) {
-            statement.execute("\n" +
-                    "create table batch_test (\n" +
-                    "  batch_test_id int primary key,\n" +
-                    "  first_name    varchar(50) not null,\n" +
-                    "  last_name     varchar(50) not null,\n" +
-                    "  email         varchar(50) not null,\n" +
-                    "  address       varchar(50) not null\n" +
-                    ")");
+            final String createTable = database.getCreateTable(databaseGenome);
+            statement.execute(createTable);
         }
         connection.setAutoCommit(autoCommit);
     }

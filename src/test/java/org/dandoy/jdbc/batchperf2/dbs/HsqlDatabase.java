@@ -2,11 +2,10 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
-import java.sql.Connection;
-
-class HsqlDatabase extends Database {
-    HsqlDatabase(String db, Connection connection) {
-        super(db, connection);
+public class HsqlDatabase extends Database {
+    @SafeVarargs
+    public HsqlDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+        super(db, genes);
     }
 
     @Override

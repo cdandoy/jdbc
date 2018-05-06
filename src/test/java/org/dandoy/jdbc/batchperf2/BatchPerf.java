@@ -1,6 +1,6 @@
 package org.dandoy.jdbc.batchperf2;
 
-import org.dandoy.jdbc.batchperf2.dbs.Database;
+import org.dandoy.jdbc.batchperf2.dbs.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,7 +8,6 @@ import java.util.function.BiConsumer;
 
 public class BatchPerf implements AutoCloseable {
     private final BatchPerfTester _tester = new BatchPerfTester();
-    private final Genome _genome = new Genome();
     private final ResultWriter _resultWriter;
 
     private int _nbrTests;
@@ -28,18 +27,17 @@ public class BatchPerf implements AutoCloseable {
         _resultWriter.close();
     }
 
-    @Override
-    public String toString() {
-        return _genome.toString();
-    }
-
-    private void apply(Gene<?>... genes) {
-        apply(Arrays.asList(genes));
-    }
-
     private void apply(List<Gene<?>> genes) {
+        final Genome genome = new Genome();
+        apply(genome, genes);
+    }
+
+    private void apply(Genome genome, List<Gene<?>> genes) {
         if (genes.isEmpty()) {
-            runTest();
+            if (genome.isApplicable()) {
+                final Database database = genome.getDatabase();
+                database.forEachDatabaseGene(databaseGenome -> runTest(genome, databaseGenome));
+            }
         } else {
             final Gene<?> gene = genes.get(0);
             final List<Gene<?>> otherGenes = genes.subList(1, genes.size());
@@ -47,37 +45,37 @@ public class BatchPerf implements AutoCloseable {
             final Object[] values = gene.getValues();
             for (Object value : values) {
                 //noinspection unchecked
-                consumer.accept(_genome, value);
-                apply(otherGenes);
+                consumer.accept(genome, value);
+                apply(genome, otherGenes);
             }
         }
     }
 
-    private void runTest() {
-        if (_genome.isApplicable()) {
-            try {
-                System.out.println(_genome);
-                final long t = _tester.runTest(_genome);
-                final Result result = new Result(_genome, t);
-                _resultWriter.writeResult(result);
-                _nbrTests++;
-            } catch (Exception e) {
-                System.err.println("Test failed: " + this);
-                e.printStackTrace();
-            }
+    private void runTest(Genome genome, DatabaseGenome databaseGenome) {
+        try {
+            System.out.println(genome + "|" + databaseGenome);
+            final long t = _tester.runTest(genome, databaseGenome);
+            final Result result = new Result(genome, databaseGenome, t);
+            _resultWriter.writeResult(result);
+            _nbrTests++;
+        } catch (Exception e) {
+            System.err.println("Test failed: " + this);
+            e.printStackTrace();
         }
     }
 
-    private void vary() {
-        apply(
+    private static List<Gene<?>> createGenes() {
+        return Arrays.asList(
                 new Gene<>(Genome::setDatabase
-                        , Database.createDatabase("derby")
-                        , Database.createDatabase("hsql")
-                        , Database.createDatabase("sqllite")
-                        , Database.createDatabase("mysql")
-                        , Database.createDatabase("oracle11")
-                        , Database.createDatabase("postgres")
-                        , Database.createDatabase("sqlserver")
+                        , new DerbyDatabase("derby")
+                        , new HsqlDatabase("hsql")
+                        , new SqliteDatabase("sqllite")
+                        , new MysqlDatabase("mysql")
+                        , new OracleDatabase("oracle11"
+                        , new DatabaseGene<>(OracleDatabase.OracleDatabaseGenome::setPctFree)
+                )
+                        , new PostgresDatabase("postgres")
+                        , new SqlserverDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
                         , 1000
@@ -90,16 +88,18 @@ public class BatchPerf implements AutoCloseable {
         );
     }
 
-    private void vary2() {
-        apply(
+    private static List<Gene<?>> createGenes2() {
+        return Arrays.asList(
                 new Gene<>(Genome::setDatabase
-//                        , Database.createDatabase("derby")
-//                        , Database.createDatabase("hsql")
-//                        , Database.createDatabase("sqllite")
-//                        , Database.createDatabase("mysql")
-                        , Database.createDatabase("oracle11")
-//                        , Database.createDatabase("postgres")
-//                        , Database.createDatabase("sqlserver")
+//                        , new DerbyDatabase("derby")
+//                        , new HsqlDatabase("hsql")
+//                        , new SqliteDatabase("sqllite")
+//                        , new MysqlDatabase("mysql")
+                        , new OracleDatabase("oracle11"
+                        , new DatabaseGene<>(OracleDatabase.OracleDatabaseGenome::setPctFree, false, true)
+                )
+//                        , new PostgresDatabase("postgres")
+//                        , new SqlserverDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
                         , 1000
@@ -122,13 +122,10 @@ public class BatchPerf implements AutoCloseable {
     }
 
     public static void main(String[] args) {
+        //noinspection ConstantConditionalExpression
+        final List<Gene<?>> genes = false ? createGenes() : createGenes2();
         try (BatchPerf batchPerf = createBatchPerf()) {
-            //noinspection ConstantConditions
-            if (false) {
-                batchPerf.vary();
-            } else {
-                batchPerf.vary2();
-            }
+            batchPerf.apply(genes);
             System.out.println("Tests: " + batchPerf._nbrTests);
         }
     }

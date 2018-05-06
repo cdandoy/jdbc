@@ -1,9 +1,8 @@
 package org.dandoy.jdbc.batchperf2.dbs;
 
-import java.sql.Connection;
-
-class SqlserverDatabase extends Database {
-    SqlserverDatabase(String db, Connection connection) {
-        super(db, connection);
+public class SqlserverDatabase extends Database {
+    @SafeVarargs
+    public SqlserverDatabase(String db, DatabaseGene<? extends DatabaseGenome, ?>... genes) {
+        super(db, genes);
     }
 }
