@@ -4,6 +4,7 @@ import org.dandoy.jdbc.Config;
 import org.dandoy.jdbc.batchperf2.Genome;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -82,5 +83,11 @@ public class Database {
 
     public String getInsertHints(DatabaseGenome databaseGenome) {
         return "";
+    }
+
+    public void preRun(Connection connection, Genome genome, DatabaseGenome databaseGenome) throws SQLException {
+    }
+
+    public void postRun(Connection connection, Genome genome, DatabaseGenome databaseGenome) {
     }
 }

@@ -2,6 +2,8 @@ package org.dandoy.jdbc.batchperf2.dbs;
 
 import org.dandoy.jdbc.batchperf2.Genome;
 
+import java.sql.JDBCType;
+
 public class OracleDatabase extends Database {
     private static final String ORACLE_PCTFREE = "oracle_pctfree";
     private static final String ORACLE_HINT_APPEND = "oracle_hint_append";
@@ -43,11 +45,11 @@ public class OracleDatabase extends Database {
 
     @SuppressWarnings("WeakerAccess")
     public static DatabaseGene pctFree() {
-        return DatabaseGene.booleanGene(ORACLE_PCTFREE);
+        return new DatabaseGene(ORACLE_PCTFREE, JDBCType.BOOLEAN, true, false);
     }
 
     @SuppressWarnings("WeakerAccess")
     public static DatabaseGene hintAppend() {
-        return DatabaseGene.booleanGene(ORACLE_HINT_APPEND);
+        return new DatabaseGene(ORACLE_HINT_APPEND, JDBCType.BOOLEAN, true, false);
     }
 }

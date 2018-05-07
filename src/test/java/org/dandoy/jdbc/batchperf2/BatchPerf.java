@@ -1,8 +1,8 @@
 package org.dandoy.jdbc.batchperf2;
 
-import org.dandoy.jdbc.batchperf2.dbs.*;
+import org.dandoy.jdbc.batchperf2.dbs.Database;
+import org.dandoy.jdbc.batchperf2.dbs.DatabaseGenome;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -16,7 +16,7 @@ public class BatchPerf implements AutoCloseable {
         _resultWriter = resultWriter;
     }
 
-    private static BatchPerf createBatchPerf(List<Gene<?>> genes) {
+    static BatchPerf createBatchPerf(List<Gene<?>> genes) {
         final List<Database> databases = Gene.getDatabases(genes);
         final ResultWriter resultWriter = ResultWriter.createResultWriter(databases);
 
@@ -28,7 +28,11 @@ public class BatchPerf implements AutoCloseable {
         _resultWriter.close();
     }
 
-    private void apply(List<Gene<?>> genes) {
+    int getNbrTests() {
+        return _nbrTests;
+    }
+
+    void apply(List<Gene<?>> genes) {
         final Genome genome = new Genome();
         apply(genome, genes);
     }
@@ -63,77 +67,6 @@ public class BatchPerf implements AutoCloseable {
         } catch (Exception e) {
             System.err.println("Test failed: " + this);
             e.printStackTrace();
-        }
-    }
-
-    private static List<Gene<?>> createGenes() {
-        return Arrays.asList(
-                new Gene<>(Genome::setDatabase
-                        , new DerbyDatabase("derby")
-                        , new HsqlDatabase("hsql")
-                        , new SqliteDatabase("sqllite")
-                        , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
-                        , new PostgresDatabase("postgres")
-                        , new SqlserverDatabase("sqlserver")
-                ),
-                new Gene<>(Genome::setNbrRows
-                        , 1000
-                        , 10_000
-                        , 100_000
-                ),
-                new Gene<>(Genome::setAutoCommit, false, true),
-                new Gene<>(Genome::setBatchInsert, false, true),
-                new Gene<>(Genome::setMultiValue, 1, 500)
-        );
-    }
-
-    private static List<Gene<?>> createGenes2() {
-        return Arrays.asList(
-                new Gene<>(Genome::setDatabase
-//                        , new DerbyDatabase("derby")
-//                        , new HsqlDatabase("hsql")
-//                        , new SqliteDatabase("sqllite")
-                        , new MysqlDatabase("mysql")
-//                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
-//                        , new PostgresDatabase("postgres")
-//                        , new SqlserverDatabase("sqlserver")
-                ),
-                new Gene<>(Genome::setNbrRows
-//                        , 1000
-//                        , 10_000
-                        , 100_000
-                ),
-                new Gene<>(Genome::setAutoCommit
-//                        , false
-                        , true
-                ),
-                new Gene<>(Genome::setBatchInsert
-//                        , false
-                        , true
-                ),
-                new Gene<>(Genome::setBatchSize
-                        , null
-                        , 100
-                        , 500
-                        , 1000
-                        , 5000
-                        , 10_000
-                ),
-                new Gene<>(Genome::setMultiValue
-                        , 1
-                        , 500
-                        , 1000
-                )
-        );
-    }
-
-    public static void main(String[] args) {
-        //noinspection ConstantConditionalExpression
-        final List<Gene<?>> genes = false ? createGenes() : createGenes2();
-        try (BatchPerf batchPerf = createBatchPerf(genes)) {
-            batchPerf.apply(genes);
-            System.out.println("Tests: " + batchPerf._nbrTests);
         }
     }
 }

@@ -24,10 +24,12 @@ class BatchPerfTester {
         final Connection connection = database.getConnection();
 
         try {
-            createTable(connection, database, databaseGenome, autoCommit);
+            createTable(connection, database, databaseGenome);
+            connection.setAutoCommit(autoCommit);
 
             int batchPos = 0;
             final long t0 = System.currentTimeMillis();
+            database.preRun(connection, genome, databaseGenome);
             try (PreparedStatement preparedStatement = preparedStatement(connection, genome, database, databaseGenome)) {
                 final int iter = nbrIterations / multiValue;
                 for (int i = 0; i < iter; i++) {
@@ -54,6 +56,7 @@ class BatchPerfTester {
                 }
             }
             connection.setAutoCommit(true);
+            database.postRun(connection, genome, databaseGenome);
             final long t1 = System.currentTimeMillis();
             return t1 - t0;
         } finally {
@@ -70,12 +73,11 @@ class BatchPerfTester {
         ));
     }
 
-    private void createTable(Connection connection, Database database, DatabaseGenome databaseGenome, boolean autoCommit) throws SQLException {
+    private void createTable(Connection connection, Database database, DatabaseGenome databaseGenome) throws SQLException {
         BaseTest.dropTableIfExists(connection, "batch_test");
         try (Statement statement = connection.createStatement()) {
             final String createTable = database.getCreateTable(databaseGenome);
             statement.execute(createTable);
         }
-        connection.setAutoCommit(autoCommit);
     }
 }
