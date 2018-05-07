@@ -4,6 +4,7 @@ import org.dandoy.jdbc.batchperf2.Genome;
 
 public class OracleDatabase extends Database {
     private static final String ORACLE_PCTFREE = "oracle_pctfree";
+    private static final String ORACLE_HINT_APPEND = "oracle_hint_append";
 
     public OracleDatabase(String db, DatabaseGene... genes) {
         super(db, genes);
@@ -30,7 +31,23 @@ public class OracleDatabase extends Database {
         );
     }
 
+    @Override
+    public String getInsertHints(DatabaseGenome databaseGenome) {
+        if (databaseGenome.getValue(ORACLE_HINT_APPEND)) return "/*+ append */";
+        return super.getInsertHints(databaseGenome);
+    }
+
+    public static DatabaseGene[] allGenes() {
+        return new DatabaseGene[]{pctFree(), hintAppend()};
+    }
+
+    @SuppressWarnings("WeakerAccess")
     public static DatabaseGene pctFree() {
         return DatabaseGene.booleanGene(ORACLE_PCTFREE);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static DatabaseGene hintAppend() {
+        return DatabaseGene.booleanGene(ORACLE_HINT_APPEND);
     }
 }

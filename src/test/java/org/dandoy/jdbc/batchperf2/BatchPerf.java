@@ -73,7 +73,7 @@ public class BatchPerf implements AutoCloseable {
                         , new HsqlDatabase("hsql")
                         , new SqliteDatabase("sqllite")
                         , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11", OracleDatabase.pctFree())
+                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
                         , new PostgresDatabase("postgres")
                         , new SqlserverDatabase("sqlserver")
                 ),
@@ -95,21 +95,21 @@ public class BatchPerf implements AutoCloseable {
 //                        , new HsqlDatabase("hsql")
 //                        , new SqliteDatabase("sqllite")
 //                        , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11", OracleDatabase.pctFree())
-                        , new PostgresDatabase("postgres")
-                        , new SqlserverDatabase("sqlserver")
+                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
+//                        , new PostgresDatabase("postgres")
+//                        , new SqlserverDatabase("sqlserver")
                 ),
                 new Gene<>(Genome::setNbrRows
-                        , 1000
-                        , 10_000
+//                        , 1000
+//                        , 10_000
                         , 100_000
                 ),
                 new Gene<>(Genome::setAutoCommit
-                        , false
+//                        , false
                         , true
                 ),
                 new Gene<>(Genome::setBatchInsert
-                        , false
+//                        , false
                         , true
                 ),
                 new Gene<>(Genome::setMultiValue

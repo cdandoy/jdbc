@@ -26,7 +26,7 @@ class BatchPerfTester {
             createTable(connection, database, databaseGenome, autoCommit);
 
             final long t0 = System.currentTimeMillis();
-            try (PreparedStatement preparedStatement = preparedStatement(connection, multiValue)) {
+            try (PreparedStatement preparedStatement = preparedStatement(connection, genome, database, databaseGenome)) {
                 final int iter = nbrIterations / multiValue;
                 for (int i = 0; i < iter; i++) {
                     int p = 1;
@@ -55,9 +55,13 @@ class BatchPerfTester {
         }
     }
 
-    private PreparedStatement preparedStatement(Connection connection, int multiValue) throws SQLException {
-        final String params = StringUtils.repeat("(?,?,?,?,?)", ",", multiValue);
-        return connection.prepareStatement("insert into batch_test (batch_test_id, first_name, last_name, email, address) values " + params);
+    private PreparedStatement preparedStatement(Connection connection, Genome genome, Database database, DatabaseGenome databaseGenome) throws SQLException {
+        final String params = StringUtils.repeat("(?,?,?,?,?)", ",", genome.getMultiValue());
+        return connection.prepareStatement(String.format(
+                "insert %s into batch_test (batch_test_id, first_name, last_name, email, address) values %s",
+                database.getInsertHints(databaseGenome),
+                params
+        ));
     }
 
     private void createTable(Connection connection, Database database, DatabaseGenome databaseGenome, boolean autoCommit) throws SQLException {

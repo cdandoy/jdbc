@@ -79,4 +79,8 @@ public class Database {
                 "  address       varchar(50) not null\n" +
                 ")";
     }
+
+    public String getInsertHints(DatabaseGenome databaseGenome) {
+        return "";
+    }
 }
