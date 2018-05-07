@@ -94,8 +94,8 @@ public class BatchPerf implements AutoCloseable {
 //                        , new DerbyDatabase("derby")
 //                        , new HsqlDatabase("hsql")
 //                        , new SqliteDatabase("sqllite")
-//                        , new MysqlDatabase("mysql")
-                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
+                        , new MysqlDatabase("mysql")
+//                        , new OracleDatabase("oracle11", OracleDatabase.allGenes())
 //                        , new PostgresDatabase("postgres")
 //                        , new SqlserverDatabase("sqlserver")
                 ),
@@ -112,9 +112,18 @@ public class BatchPerf implements AutoCloseable {
 //                        , false
                         , true
                 ),
+                new Gene<>(Genome::setBatchSize
+                        , null
+                        , 100
+                        , 500
+                        , 1000
+                        , 5000
+                        , 10_000
+                ),
                 new Gene<>(Genome::setMultiValue
                         , 1
                         , 500
+                        , 1000
                 )
         );
     }

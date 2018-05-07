@@ -19,12 +19,14 @@ class BatchPerfTester {
         final boolean autoCommit = genome.isAutoCommit();
         final boolean batchInsert = genome.isBatchInsert();
         final int multiValue = genome.getMultiValue();
+        int batchSize = genome.getBatchSize() == null ? Integer.MAX_VALUE : genome.getBatchSize();
 
         final Connection connection = database.getConnection();
 
         try {
             createTable(connection, database, databaseGenome, autoCommit);
 
+            int batchPos = 0;
             final long t0 = System.currentTimeMillis();
             try (PreparedStatement preparedStatement = preparedStatement(connection, genome, database, databaseGenome)) {
                 final int iter = nbrIterations / multiValue;
@@ -39,6 +41,10 @@ class BatchPerfTester {
                     }
                     if (batchInsert) {
                         preparedStatement.addBatch();
+                        if (++batchPos > batchSize) {
+                            preparedStatement.executeBatch();
+                            batchPos = 0;
+                        }
                     } else {
                         preparedStatement.executeUpdate();
                     }

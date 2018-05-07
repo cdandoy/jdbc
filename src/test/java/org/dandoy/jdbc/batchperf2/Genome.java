@@ -8,6 +8,7 @@ public class Genome {
     private boolean _autoCommit;
     private boolean _batchInsert;
     private int _multiValue = 1;
+    private Integer _batchSize;
 
     Genome() {
     }
@@ -18,6 +19,7 @@ public class Genome {
                 ", _nbrRows=" + _nbrRows +
                 ", _autoCommit=" + _autoCommit +
                 ", _batchInsert=" + _batchInsert +
+                ", _batchSize=" + _batchSize +
                 ", _multiValue=" + _multiValue;
     }
 
@@ -61,7 +63,16 @@ public class Genome {
         _multiValue = multiValue;
     }
 
+    public Integer getBatchSize() {
+        return _batchSize;
+    }
+
+    public void setBatchSize(Integer batchSize) {
+        _batchSize = batchSize;
+    }
+
     boolean isApplicable() {
+        if (!_batchInsert && _batchSize != null) return false;
         return _database.isApplicable(this);
     }
 }

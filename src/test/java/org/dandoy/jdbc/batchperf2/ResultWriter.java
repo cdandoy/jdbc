@@ -24,7 +24,8 @@ public class ResultWriter implements AutoCloseable {
             final Connection connection = Config.getConnection("results");
             try (Statement statement = connection.createStatement()) {
                 final String dbGeneDecls = createDbDecls(databases);
-                statement.execute("drop table if exists batch_results;\n" +
+                statement.execute("\n" +
+                        "drop table if exists batch_results;\n" +
                         "\n" +
                         "create table batch_results (\n" +
                         "  batch_result_id serial primary key,\n" +
@@ -32,10 +33,13 @@ public class ResultWriter implements AutoCloseable {
                         "  nbr_rows        int         not null,\n" +
                         "  auto_commit     boolean     not null,\n" +
                         "  batch           boolean     not null,\n" +
+                        "  batch_size      int,\n" +
                         "  multi_value     int         not null,\n" +
                         "  millis          int         not null,\n" +
                         "  millis_per_row  float       not null\n" +
+                        "  " +
                         dbGeneDecls +
+                        "\n" +
                         ");");
             }
             final PreparedStatement preparedStatement = connection.prepareStatement(
@@ -78,9 +82,9 @@ public class ResultWriter implements AutoCloseable {
                 .stream()
                 .map(databaseGene -> "," + databaseGene.getName())
                 .collect(Collectors.joining());
-        final int nbrColumns = 7 + databaseGenes.size();
+        final int nbrColumns = 8 + databaseGenes.size();
         return String.format(
-                "insert into batch_results (db, nbr_rows, auto_commit, batch, multi_value, millis, millis_per_row%s) values (%s)",
+                "insert into batch_results (db, nbr_rows, auto_commit, batch, batch_size, multi_value, millis, millis_per_row%s) values (%s)",
                 columnNames,
                 StringUtils.repeat("?", ",", nbrColumns)
         );
@@ -108,6 +112,7 @@ public class ResultWriter implements AutoCloseable {
             preparedStatement.setInt(pos++, genome.getNbrRows());
             preparedStatement.setBoolean(pos++, genome.isAutoCommit());
             preparedStatement.setBoolean(pos++, genome.isBatchInsert());
+            preparedStatement.setObject(pos++, genome.getBatchSize(), Types.INTEGER);
             preparedStatement.setInt(pos++, genome.getMultiValue());
             preparedStatement.setLong(pos++, result.getTime());
             preparedStatement.setDouble(pos++, ((double) result.getTime()) / genome.getNbrRows());
